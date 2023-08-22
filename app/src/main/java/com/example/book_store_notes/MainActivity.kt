@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BookStoreScaffold(navController: NavHostController) {
 
-    Scaffold(bottomBar = { BookStoreBottomNav(navHostController = navController)}) { paddingValues ->
+    Scaffold(bottomBar = { BookStoreBottomNav(navController = navController)}) { paddingValues ->
         NavHost(navController = navController, startDestination = Destination.Library.route) {
             composable(Destination.Library.route) {
                 BookstoreScreen()
