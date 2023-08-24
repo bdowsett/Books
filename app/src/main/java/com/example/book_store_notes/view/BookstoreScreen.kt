@@ -1,7 +1,6 @@
 package com.example.book_store_notes.view
 
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -112,8 +111,7 @@ fun ShowBooksList(result: NetworkResult<GoogleBooksApiResponse>, navController: 
                         .clickable {
                             if (volume.id != null) {
                                 navController.navigate(Destination.BookDetails.createRoute(volume.id))
-                            }
-                            else
+                            } else
                                 Toast
                                     .makeText(context, "Book id is null", Toast.LENGTH_SHORT)
                                     .show()
