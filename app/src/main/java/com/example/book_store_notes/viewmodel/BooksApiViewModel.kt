@@ -3,6 +3,7 @@ package com.example.book_store_notes.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.book_store_notes.model.api.BookApiRepo
+import com.example.book_store_notes.model.api.TestClass
 import com.example.book_store_notes.validateQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -15,9 +16,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class BooksApiViewModel @Inject constructor(private val repo: BookApiRepo): ViewModel() {
+class BooksApiViewModel @Inject constructor(private val repo: BookApiRepo, private val test: TestClass): ViewModel() {
 
     val result = repo.books
+    val testCase = test.monies
 
     val queryText: MutableStateFlow<String> = MutableStateFlow("")
     private val queryInput = Channel<String>(Channel.CONFLATED)
@@ -44,9 +46,14 @@ class BooksApiViewModel @Inject constructor(private val repo: BookApiRepo): View
     fun onQueryInput(input: String){
         queryText.value = input
         queryInput.trySend(input)
+        test.updateNumber()
     }
 
     fun getSingleBook(id:String) {
         repo.getBookDetails(id)
     }
-}
+
+    fun changeTheNumber(){
+        test.updateNumber()
+
+    }    }

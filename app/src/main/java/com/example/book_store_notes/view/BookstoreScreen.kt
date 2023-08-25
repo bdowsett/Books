@@ -46,6 +46,7 @@ fun BookstoreScreen(
 
     val result by vm.result.collectAsState()
     val text = vm.queryText.collectAsState()
+    val test = vm.testCase.collectAsState()
 
     Column(
         modifier = Modifier
@@ -69,7 +70,7 @@ fun BookstoreScreen(
         ) {
             when (result) {
                 is NetworkResult.Initial -> {
-                    Text(text = "Search for a book")
+                    Text(text = test.value.toString())
                 }
 
                 is NetworkResult.Success -> {
