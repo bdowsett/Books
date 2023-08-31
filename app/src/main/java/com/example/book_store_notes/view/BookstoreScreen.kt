@@ -31,6 +31,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.book_store_notes.Destination
 import com.example.book_store_notes.authorsToString
+import com.example.book_store_notes.connectivity.ConnectivityObservable
 import com.example.book_store_notes.model.GoogleBooksApiResponse
 import com.example.book_store_notes.model.api.NetworkResult
 import com.example.book_store_notes.viewmodel.BooksApiViewModel
@@ -46,7 +47,8 @@ fun BookstoreScreen(
 
     val result by vm.result.collectAsState()
     val text = vm.queryText.collectAsState()
-    val test = vm.testCase.collectAsState()
+    val networkAvailable = vm.networkAvailable.observe().collectAsState(initial = ConnectivityObservable.Status.Available)
+
 
     Column(
         modifier = Modifier
@@ -55,6 +57,12 @@ fun BookstoreScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        if(networkAvailable.value == ConnectivityObservable.Status.Unavailable)
+            Row(modifier = Modifier.fillMaxWidth().background(Color.Red), horizontalArrangement = Arrangement.Center){
+                Text(text = "Network Unavailable",
+                    fontWeight = FontWeight.Bold, color = Color.White,
+                modifier = Modifier.padding(16.dp))
+            }
         OutlinedTextField(
             value = text.value,
             onValueChange = vm::onQueryInput,
@@ -70,7 +78,7 @@ fun BookstoreScreen(
         ) {
             when (result) {
                 is NetworkResult.Initial -> {
-                    Text(text = test.value.toString())
+                    Text(text = "Search for books")
                 }
 
                 is NetworkResult.Success -> {
@@ -111,7 +119,12 @@ fun ShowBooksList(result: NetworkResult<GoogleBooksApiResponse>, navController: 
                         .wrapContentHeight()
                         .clickable {
                             if (volume.id != null) {
-                                navController.navigate(Destination.BookDetails.createRoute(volume.id))
+                                navController.navigate(
+                                    Destination.BookDetails.createRoute(
+                                        volume.id,
+                                        "chunk"
+                                    )
+                                )
                             } else
                                 Toast
                                     .makeText(context, "Book id is null", Toast.LENGTH_SHORT)

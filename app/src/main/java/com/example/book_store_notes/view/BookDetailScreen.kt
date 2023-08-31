@@ -12,11 +12,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
@@ -27,22 +31,29 @@ import androidx.navigation.NavHostController
 import com.example.book_store_notes.Destination
 import com.example.book_store_notes.authorsToString
 import com.example.book_store_notes.viewmodel.BooksApiViewModel
+import com.example.book_store_notes.viewmodel.CollectionDbViewModel
 
 
 @Composable
 fun BookDetailScreen(
     bvm: BooksApiViewModel,
+    collectionDbViewModel: CollectionDbViewModel,
     paddingValues: PaddingValues,
     navController: NavHostController
 ) {
 
     val book = bvm.bookDetails.value
+    val inCollection by collectionDbViewModel.currentBook.collectAsState()
 
     if (book == null)
         navController.navigate(Destination.Library.route) {
             popUpTo(Destination.Library.route)
             launchSingleTop = true
         }
+
+    LaunchedEffect(key1 = Unit) {
+        collectionDbViewModel.setCurrentBookId(bookId = book?.id)
+    }
 
     Column(
         modifier = Modifier
@@ -86,13 +97,25 @@ fun BookDetailScreen(
             Text(text = description, fontSize = 16.sp, modifier = Modifier.padding(4.dp))
 
             Button(onClick = {
+                if (inCollection == null) {
+                    collectionDbViewModel.addBook(book)
+                }
             }, modifier = Modifier.padding(bottom = 20.dp)) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Text(text = "Add to collection")
+                if (inCollection == null)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Text(text = "Add to collection")
+                    } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null)
+                        Text(text = "Added")
+                    }
                 }
             }
         }

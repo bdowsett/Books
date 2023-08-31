@@ -5,18 +5,25 @@ import androidx.lifecycle.viewModelScope
 import com.example.book_store_notes.model.Volume
 import com.example.book_store_notes.model.db.CollectionDbRepo
 import com.example.book_store_notes.model.db.DbBook
+import com.example.book_store_notes.model.db.DbNote
+import com.example.book_store_notes.model.db.Note
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+@HiltViewModel
 class CollectionDbViewModel @Inject constructor(private val repo: CollectionDbRepo): ViewModel() {
 
     val collection = MutableStateFlow<List<DbBook>>(listOf())
     val currentBook = MutableStateFlow<DbBook?>(null)
+    val notes = MutableStateFlow<List<DbNote>>(listOf())
 
     init{
         getCollection()
+        getNotes()
     }
 
     private fun getCollection(){
@@ -46,8 +53,29 @@ class CollectionDbViewModel @Inject constructor(private val repo: CollectionDbRe
     fun deleteBook(book: DbBook) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.deleteBookFromRepo(book)
+            repo.deleteAllNotes(book)
         }
     }
 
+
+    private fun getNotes() {
+        viewModelScope.launch {
+            repo.getAllNotes().collect {
+                notes.value = it
+            }
+        }
+    }
+
+    fun addNote(note: Note) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.addNoteToRepo(DbNote.fromNote(note))
+        }
+    }
+
+    fun deleteNote(note: DbNote) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.deleteNoteFromRepo(note)
+        }
+    }
 
 }

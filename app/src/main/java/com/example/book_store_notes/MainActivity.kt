@@ -1,6 +1,7 @@
 package com.example.book_store_notes
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,14 +24,15 @@ import com.example.book_store_notes.view.BookStoreBottomNav
 import com.example.book_store_notes.view.BookstoreScreen
 import com.example.book_store_notes.view.CollectionScreen
 import com.example.book_store_notes.viewmodel.BooksApiViewModel
+import com.example.book_store_notes.viewmodel.CollectionDbViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 
 sealed class Destination(val route: String) {
     object Library : Destination(route = "library")
     object Collection : Destination(route = "collection")
-    object BookDetails : Destination("book/{bookId}") {
-        fun createRoute(bookId: String?) = "book/$bookId"
+    object BookDetails : Destination("book/{bookId}/{cheese}") {
+        fun createRoute(bookId: String?, cheese: String) = "book/$bookId/$cheese"
     }
 }
 
@@ -38,6 +40,7 @@ sealed class Destination(val route: String) {
 class MainActivity : ComponentActivity() {
 
     private val booksViewModel by viewModels<BooksApiViewModel>()
+    private val collectionsViewModel by viewModels<CollectionDbViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     
                     val navController = rememberNavController()
-                    BookStoreScaffold(navController = navController, viewModel = booksViewModel)
+                    BookStoreScaffold(navController = navController, viewModel = booksViewModel, collectionsViewModel = collectionsViewModel)
                 }
             }
         }
@@ -61,10 +64,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookStoreScaffold(navController: NavHostController, viewModel: BooksApiViewModel) {
+fun BookStoreScaffold(navController: NavHostController, viewModel: BooksApiViewModel, collectionsViewModel: CollectionDbViewModel) {
 
     val ctx = LocalContext.current
-
 
     Scaffold(bottomBar = { BookStoreBottomNav(navController = navController)}) { paddingValues ->
         NavHost(navController = navController, startDestination = Destination.Library.route) {
@@ -72,15 +74,17 @@ fun BookStoreScaffold(navController: NavHostController, viewModel: BooksApiViewM
                 BookstoreScreen(navController = navController, vm = viewModel, paddingValues = paddingValues)
             }
             composable(Destination.Collection.route) {
-                CollectionScreen()
+                CollectionScreen(collectionsViewModel)
             }
             composable(Destination.BookDetails.route) {navBackStackEntry ->
                 val id = navBackStackEntry.arguments?.getString("bookId")
+                val cheese = navBackStackEntry.arguments?.getString("cheese")
+                Log.d("ben", "$cheese")
                 if (id == null)
                     Toast.makeText(ctx, "Book id is required", Toast.LENGTH_SHORT ).show()
                 else {
                     viewModel.getSingleBook(id)
-                    BookDetailScreen(bvm = viewModel, paddingValues = paddingValues, navController = navController)
+                    BookDetailScreen(bvm = viewModel, paddingValues = paddingValues, navController = navController, collectionDbViewModel = collectionsViewModel )
                 }
             }
         }
